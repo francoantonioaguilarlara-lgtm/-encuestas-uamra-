@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f3864">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icono.png">
+<link rel="apple-touch-icon" href="icono.png">
+<title>Encuestas UAMRA</title>
+<style>
+  :root {
+    --navy: #1f3864; --azul: #2a78d6; --azul-claro: #ebf2fc; --fondo: #f3f5f9; --texto: #1d2433;
+    --gris: #667085; --borde: #d6dce6; --verde: #1a7f45; --verde-claro: #e3f5ea; --rojo: #c0392b;
+    --rojo-claro: #fdecea; --ambar: #b26b00; --ambar-claro: #fff4dc; --blanco: #fff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, "Segoe UI", Roboto, sans-serif; background: var(--fondo); color: var(--texto);
+         font-size: 16px; -webkit-tap-highlight-color: transparent; }
+  header { background: linear-gradient(160deg, var(--navy), var(--azul)); color: #fff; padding: 18px 16px 70px; }
+  header small { opacity: .8; font-size: 13px; }
+  header h1 { margin: 2px 0 0; font-size: 22px; }
+  .contador { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: -54px 12px 0; }
+  .contador div { background: #fff; border-radius: 14px; padding: 10px 6px; text-align: center; box-shadow: 0 2px 8px #0002; }
+  .contador b { display: block; font-size: 26px; color: var(--navy); }
+  .contador span { font-size: 12px; color: var(--gris); }
+  #pend b { color: var(--ambar); }
+  main { padding: 12px; max-width: 640px; margin: 0 auto; }
+  .tabs { display: flex; gap: 6px; margin: 12px 0; }
+  .tabs button { flex: 1; padding: 11px 4px; border: 0; border-radius: 10px; background: #e2e8f2; color: var(--navy);
+                 font-weight: 600; font-size: 14px; }
+  .tabs button.activo { background: var(--navy); color: #fff; }
+  .tarjeta { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px #0001; }
+  .tarjeta h2 { font-size: 17px; margin: 0 0 10px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .num { background: var(--azul); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: inline-grid;
+         place-items: center; font-size: 14px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 5px; }
+  input, select { width: 100%; padding: 12px; font-size: 17px; border: 1.5px solid var(--borde); border-radius: 10px;
+                  background: #fff; color: var(--texto); }
+  input:focus, select:focus { outline: 2px solid var(--azul); border-color: transparent; }
+  .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .opciones { display: flex; gap: 8px; }
+  .opciones label { flex: 1; margin: 0; padding: 12px; border: 1.5px solid var(--borde); border-radius: 10px;
+                    text-align: center; font-weight: 600; }
+  .opciones input { display: none; }
+  .opciones label:has(input:checked) { background: var(--azul-claro); border-color: var(--azul); color: var(--navy); }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; }
+  .check input { width: 24px; height: 24px; flex: none; margin-top: 2px; }
+  .boton { width: 100%; padding: 15px; border: 0; border-radius: 12px; font-size: 17px; font-weight: 700;
+           background: var(--navy); color: #fff; margin-top: 6px; }
+  .boton.secundario { background: #e2e8f2; color: var(--navy); }
+  .boton.verde { background: var(--verde); }
+  .boton:disabled { opacity: .5; }
+  .aviso { padding: 12px 14px; border-radius: 12px; margin: 10px 0; font-size: 15px; display: none; }
+  .aviso.ok { background: var(--verde-claro); color: var(--verde); display: block; }
+  .aviso.error { background: var(--rojo-claro); color: var(--rojo); display: block; }
+  .aviso.info { background: var(--ambar-claro); color: var(--ambar); display: block; }
+  .resumen-gasto { background: var(--azul-claro); border-radius: 10px; padding: 10px 12px; margin-top: 12px; font-size: 15px; }
+  .registro { display: flex; justify-content: space-between; align-items: center; padding: 10px 0;
+              border-bottom: 1px solid var(--borde); gap: 8px; }
+  .registro:last-child { border: 0; }
+  .registro small { color: var(--gris); display: block; }
+  .estado { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 99px; white-space: nowrap; }
+  .estado.pendiente { background: var(--ambar-claro); color: var(--ambar); }
+  .estado.enviado { background: var(--verde-claro); color: var(--verde); }
+  .estado.repetido { background: #eceff3; color: var(--gris); }
+  .estado.error { background: var(--rojo-claro); color: var(--rojo); }
+  .borrar { border: 0; background: none; color: var(--rojo); font-size: 20px; padding: 4px 8px; }
+  .red { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; background: var(--rojo); }
+  .red.si { background: #3ddc84; }
+  .oculto { display: none; }
+  p.nota { font-size: 14px; color: var(--gris); margin: 6px 0; }
+</style>
+</head>
+<body>
+<header>
+  <small>UASLP · UAMRA · Proyecto de Estadística</small>
+  <h1>Encuestas por salón</h1>
+  <small><span id="punto" class="red"></span><span id="textoRed">Sin internet</span> · <span id="quien"></span></small>
+</header>
+
+<section class="contador">
+  <div><b id="nTotal">0</b><span>En este celular</span></div>
+  <div id="pend"><b id="nPend">0</b><span>Por enviar</span></div>
+  <div><b id="nEnv">0</b><span>En la nube</span></div>
+</section>
+
+<main>
+  <nav class="tabs">
+    <button data-tab="captura" class="activo">Capturar</button>
+    <button data-tab="lista">Registros</button>
+    <button data-tab="ajustes">Ajustes</button>
+  </nav>
+
+  <!-- ============ CAPTURA ============ -->
+  <section id="captura">
+    <form id="form" autocomplete="off" novalidate>
+      <div class="tarjeta">
+        <h2><span class="num">1</span> Datos del alumno</h2>
+        <label for="clave">Clave universitaria (6 dígitos)</label>
+        <input id="clave" inputmode="numeric" maxlength="6" placeholder="Ej. 399809">
+        <label for="carrera">Carrera</label>
+        <select id="carrera"></select>
+        <div class="fila">
+          <div><label for="semestre">Semestre</label><select id="semestre"></select></div>
+          <div><label for="municipio">Municipio de procedencia</label><select id="municipio"></select></div>
+        </div>
+        <label>Estatus de residencia</label>
+        <div class="opciones">
+          <label><input type="radio" name="residencia" value="Local" checked> Local</label>
+          <label><input type="radio" name="residencia" value="Foráneo"> Foráneo</label>
+        </div>
+        <label for="fuente">Fuente principal de ingresos</label>
+        <select id="fuente"></select>
+      </div>
+
+      <div class="tarjeta">
+        <h2><span class="num">2</span> Ingresos y gastos de una semana normal</h2>
+        <div class="fila">
+          <div><label for="ingreso">Ingreso semanal $</label><input id="ingreso" type="number" inputmode="numeric" min="0" step="10"></div>
+          <div><label for="transporte">Transporte $</label><input id="transporte" type="number" inputmode="numeric" min="0" step="10"></div>
+          <div><label for="alimentacion">Alimentación $</label><input id="alimentacion" type="number" inputmode="numeric" min="0" step="10"></div>
+          <div><label for="otros">Otros gastos académicos $</label><input id="otros" type="number" inputmode="numeric" min="0" step="10"></div>
+        </div>
+        <div class="resumen-gasto" id="resumenGasto">Gasto total: $0 · Le quedan: $0</div>
+      </div>
+
+      <div class="tarjeta">
+        <h2><span class="num">3</span> Confirmar</h2>
+        <label class="check"><input type="checkbox" id="acepta">
+          El alumno acepta participar. Sus respuestas son confidenciales y solo se usan para el proyecto.</label>
+        <div id="avisoForm" class="aviso"></div>
+        <button class="boton" type="submit">Guardar en el celular</button>
+        <p class="nota">Se guarda aunque no haya internet. Después lo mandas a la nube desde «Registros».</p>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============ LISTA ============ -->
+  <section id="lista" class="oculto">
+    <div class="tarjeta">
+      <h2>Enviar a la nube</h2>
+      <p class="nota">Conéctate a internet (datos o Wi-Fi) y toca el botón. Solo se envían los que faltan.</p>
+      <button class="boton verde" id="enviar">Enviar pendientes a la nube</button>
+      <div id="avisoEnvio" class="aviso"></div>
+    </div>
+    <div class="tarjeta">
+      <h2>Registros en este celular</h2>
+      <div id="registros"><p class="nota">Todavía no hay registros.</p></div>
+    </div>
+    <div class="tarjeta">
+      <h2>Respaldo</h2>
+      <p class="nota">Descarga una copia de todos los registros (archivo CSV que abre Excel), por si se borra el celular.</p>
+      <button class="boton secundario" id="respaldo">Descargar respaldo</button>
+    </div>
+  </section>
+
+  <!-- ============ AJUSTES ============ -->
+  <section id="ajustes" class="oculto">
+    <div class="tarjeta">
+      <h2>Configuración del equipo</h2>
+      <label for="encuestador">Tu nombre (quién encuesta)</label>
+      <input id="encuestador" placeholder="Ej. Paola">
+      <label for="token">Clave del equipo para la nube</label>
+      <input id="token" type="password" placeholder="La misma de la página y el Excel">
+      <p class="nota">Solo se pide una vez en cada celular y se queda guardada aquí.</p>
+      <button class="boton" id="guardarAjustes">Guardar</button>
+      <div id="avisoAjustes" class="aviso"></div>
+    </div>
+    <div class="tarjeta">
+      <h2>Cómo instalar</h2>
+      <p class="nota"><b>Android (Chrome):</b> menú ⋮ → «Agregar a la pantalla principal» o «Instalar aplicación».</p>
+      <p class="nota"><b>iPhone (Safari):</b> botón Compartir → «Agregar a inicio».</p>
+      <p class="nota">Ábrela una vez con internet; después funciona sin internet en los salones.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+const URL_NUBE = "https://script.google.com/macros/s/AKfycbwLDTXc6Uym3Fxi-fE92cc7sf0WOS7fEWWkXHVleNFW61LrmqcWS-s7dd_SsZUdhzXnTg/exec";
+const OPC = {
+  carreras: ["Ing. Mecánica Administrativa", "Ing. Mecatrónica", "Ing. Química", "Lic. en Enfermería",
+             "Lic. en Mercadotecnia", "Ing. en Minerales", "Ing. en Energías Renovables"],
+  semestres: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  municipios: ["Matehuala", "Matehuala (Renta)", "Cedral", "La Paz", "Charcas", "Doctor Arroyo",
+               "Villa de Guadalupe", "Vanegas", "Otro"],
+  fuentes: ["Apoyo Familiar", "Trabajo Propio", "Trabajo y Apoyo", "Beca y Apoyo", "Emprendimiento", "Otro"],
+};
+const $ = (id) => document.getElementById(id);
+const dinero = (x) => "$" + Number(x || 0).toLocaleString("es-MX");
+
+// ---------- almacenamiento local (se queda en el celular) ----------
+function leer(clave, porDefecto) {
+  try { const v = localStorage.getItem(clave); return v ? JSON.parse(v) : porDefecto; } catch (e) { return porDefecto; }
+}
+function escribir(clave, valor) {
+  try { localStorage.setItem(clave, JSON.stringify(valor)); return true; } catch (e) { return false; }
+}
+let registros = leer("encuestas", []);
+let ajustes = leer("ajustes", { encuestador: "", token: "" });
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+
+// ---------- llenar listas ----------
+function llenar(sel, lista) { $(sel).innerHTML = lista.map((v) => `<option>${v}</option>`).join(""); }
+llenar("carrera", OPC.carreras); llenar("semestre", OPC.semestres);
+llenar("municipio", OPC.municipios); llenar("fuente", OPC.fuentes);
+
+// ---------- pestañas ----------
+document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => mostrar(b.dataset.tab)));
+function mostrar(tab) {
+  document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("activo", b.dataset.tab === tab));
+  ["captura", "lista", "ajustes"].forEach((t) => $(t).classList.toggle("oculto", t !== tab));
+  if (tab === "lista") pintarLista();
+}
+
+// ---------- contador y estado de red ----------
+function actualizar() {
+  $("nTotal").textContent = registros.length;
+  $("nPend").textContent = registros.filter((r) => r.estado !== "enviado" && r.estado !== "repetido").length;
+  $("nEnv").textContent = registros.filter((r) => r.estado === "enviado" || r.estado === "repetido").length;
+  $("quien").textContent = ajustes.encuestador ? "Encuesta: " + ajustes.encuestador : "Configura tu nombre en Ajustes";
+}
+function red() {
+  $("punto").classList.toggle("si", navigator.onLine);
+  $("textoRed").textContent = navigator.onLine ? "Con internet" : "Sin internet (se guarda en el celular)";
+}
+window.addEventListener("online", red); window.addEventListener("offline", red);
+
+// ---------- formulario ----------
+const num = (id) => Number($(id).value || 0);
+function resumenGasto() {
+  const g = num("transporte") + num("alimentacion") + num("otros");
+  $("resumenGasto").textContent = `Gasto total: ${dinero(g)} · Le quedan: ${dinero(num("ingreso") - g)}`;
+}
+["ingreso", "transporte", "alimentacion", "otros"].forEach((id) => $(id).addEventListener("input", resumenGasto));
+
+function aviso(id, tipo, texto) { const a = $(id); a.className = "aviso " + tipo; a.innerHTML = texto; }
+
+function validar(r) {
+  const e = [];
+  if (!/^\d{6}$/.test(r.Clave_Alumno)) e.push("La clave debe tener exactamente 6 dígitos.");
+  else if (registros.some((x) => x.Clave_Alumno === r.Clave_Alumno)) e.push(`La clave ${r.Clave_Alumno} ya está en este celular.`);
+  if (r.Ingreso_Semanal <= 0) e.push("El ingreso semanal debe ser mayor a cero.");
+  if (r.Estatus_Residencia === "Local" && r.Procedencia !== "Matehuala") e.push("Un alumno Local debe ser de Matehuala.");
+  if (r.Estatus_Residencia === "Foráneo" && r.Procedencia === "Matehuala")
+    e.push("Un Foráneo no puede ser de Matehuala (si renta allá, elige «Matehuala (Renta)»).");
+  const g = r.Gasto_Transporte + r.Gasto_Alimentacion + r.Otros_Gastos_Acad;
+  if (r.Ingreso_Semanal > 0 && g > 2 * r.Ingreso_Semanal) e.push("El gasto es más del doble del ingreso: revisa los números.");
+  if (!$("acepta").checked) e.push("Falta marcar que el alumno acepta participar.");
+  return e;
+}
+
+$("form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const r = {
+    Clave_Alumno: $("clave").value.trim(), Carrera: $("carrera").value, Semestre: Number($("semestre").value),
+    Estatus_Residencia: document.querySelector("input[name=residencia]:checked").value,
+    Procedencia: $("municipio").value, Fuente_Ingreso: $("fuente").value,
+    Ingreso_Semanal: num("ingreso"), Gasto_Transporte: num("transporte"),
+    Gasto_Alimentacion: num("alimentacion"), Otros_Gastos_Acad: num("otros"),
+    capturado: new Date().toISOString(), encuestador: ajustes.encuestador, estado: "pendiente",
+  };
+  const errores = validar(r);
+  if (errores.length) { aviso("avisoForm", "error", errores.join("<br>")); return; }
+  registros.push(r);
+  if (!escribir("encuestas", registros)) {
+    registros.pop();
+    aviso("avisoForm", "error", "No se pudo guardar en el celular. Descarga un respaldo y libera espacio.");
+    return;
+  }
+  // Limpia solo lo del alumno; carrera y semestre se quedan (mismo salón)
+  ["clave", "ingreso", "transporte", "alimentacion", "otros"].forEach((id) => ($(id).value = ""));
+  $("acepta").checked = false;
+  resumenGasto(); actualizar();
+  aviso("avisoForm", "ok", `✔ Guardado (${r.Clave_Alumno}). Llevas ${registros.length} en este celular.`);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  $("clave").focus();
+});
+
+// ---------- lista ----------
+const ETIQUETA = { pendiente: "Por enviar", enviado: "En la nube", repetido: "Ya estaba", error: "Error" };
+function pintarLista() {
+  if (!registros.length) { $("registros").innerHTML = '<p class="nota">Todavía no hay registros.</p>'; return; }
+  $("registros").innerHTML = registros.map((r, i) => `
+    <div class="registro">
+      <div><b>${r.Clave_Alumno}</b> · ${r.Carrera}<small>${r.Estatus_Residencia} · ingreso ${dinero(r.Ingreso_Semanal)}
+        ${r.error ? " · " + r.error : ""}</small></div>
+      <div><span class="estado ${r.estado}">${ETIQUETA[r.estado]}</span>
+        ${r.estado === "enviado" || r.estado === "repetido" ? "" : `<button class="borrar" data-i="${i}" aria-label="Borrar">✕</button>`}</div>
+    </div>`).reverse().join("");
+  document.querySelectorAll(".borrar").forEach((b) => b.addEventListener("click", () => {
+    const r = registros[b.dataset.i];
+    if (confirm(`¿Borrar el registro ${r.Clave_Alumno}? Todavía no está en la nube.`)) {
+      registros.splice(b.dataset.i, 1); escribir("encuestas", registros); pintarLista(); actualizar();
+    }
+  }));
+}
+
+// ---------- enviar a la nube ----------
+$("enviar").addEventListener("click", async () => {
+  const pendientes = registros.filter((r) => r.estado === "pendiente" || r.estado === "error");
+  if (!pendientes.length) { aviso("avisoEnvio", "ok", "No hay nada pendiente. ¡Todo está en la nube!"); return; }
+  if (!ajustes.token) { aviso("avisoEnvio", "error", "Primero escribe la clave del equipo en Ajustes."); return; }
+  if (!navigator.onLine) { aviso("avisoEnvio", "error", "No hay internet. Conéctate y vuelve a intentar."); return; }
+  $("enviar").disabled = true;
+  let ok = 0, rep = 0, mal = 0;
+  for (const r of pendientes) {
+    aviso("avisoEnvio", "info", `Enviando ${ok + rep + mal + 1} de ${pendientes.length}…`);
+    try {
+      const cuerpo = { token: ajustes.token };
+      ["Clave_Alumno", "Carrera", "Semestre", "Estatus_Residencia", "Procedencia", "Fuente_Ingreso", "Ingreso_Semanal",
+       "Gasto_Transporte", "Gasto_Alimentacion", "Otros_Gastos_Acad"].forEach((c) => (cuerpo[c] = r[c]));
+      const resp = await fetch(URL_NUBE, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+                                           body: JSON.stringify(cuerpo) });
+      const d = await resp.json();
+      if (d.ok) { r.estado = "enviado"; delete r.error; ok++; }
+      else if (/ya está registrada/.test(d.error || "")) { r.estado = "repetido"; delete r.error; rep++; }
+      else if (/Token/.test(d.error || "")) { r.estado = "error"; r.error = "Clave del equipo incorrecta"; mal++; break; }
+      else { r.estado = "error"; r.error = d.error || "Error desconocido"; mal++; }
+    } catch (e) {
+      r.estado = "error"; r.error = "Sin conexión"; mal++;
+    }
+    escribir("encuestas", registros); actualizar();
+  }
+  $("enviar").disabled = false;
+  pintarLista();
+  const partes = [`${ok} enviados`];
+  if (rep) partes.push(`${rep} ya estaban en la nube`);
+  if (mal) partes.push(`${mal} con error (vuelve a intentar)`);
+  aviso("avisoEnvio", mal ? "error" : "ok", partes.join(" · "));
+});
+
+// ---------- respaldo CSV ----------
+$("respaldo").addEventListener("click", () => {
+  const cols = ["Clave_Alumno", "Carrera", "Semestre", "Estatus_Residencia", "Procedencia", "Fuente_Ingreso",
+                "Ingreso_Semanal", "Gasto_Transporte", "Gasto_Alimentacion", "Otros_Gastos_Acad", "capturado",
+                "encuestador", "estado"];
+  const csv = [cols.join(",")].concat(registros.map((r) => cols.map((c) => `"${String(r[c] ?? "").replace(/"/g, '""')}"`).join(",")));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["﻿" + csv.join("\n")], { type: "text/csv" }));
+  a.download = `encuestas_${ajustes.encuestador || "celular"}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+});
+
+// ---------- ajustes ----------
+$("encuestador").value = ajustes.encuestador; $("token").value = ajustes.token;
+$("guardarAjustes").addEventListener("click", () => {
+  ajustes = { encuestador: $("encuestador").value.trim(), token: $("token").value.trim() };
+  escribir("ajustes", ajustes); actualizar();
+  aviso("avisoAjustes", "ok", "Guardado.");
+});
+
+red(); actualizar(); resumenGasto();
+if (!ajustes.token || !ajustes.encuestador) mostrar("ajustes");
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
